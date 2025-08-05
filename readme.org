@@ -1,66 +1,242 @@
-对 Emmy 计算机代数系统及其与 Clerk 集成的深度解析：Clojure 中的文学化科学计算第 1 节：从 scmutils 到 emmy 的演进：两种 Lisp 的故事1.1. 奠基之作：scmutils 与《经典力学的结构与解释》计算机代数系统的历史长河中，鲜有项目能像 emmy 这样，其血脉可以清晰地追溯到一本具有里程碑意义的教科书。emmy 的哲学与技术根基源于 Gerald Jay Sussman 和 Jack Wisdom 合著的《经典力学的结构与解释》（Structure and Interpretation of Classical Mechanics, SICM），以及与之配套的 Scheme 库——scmutils 1。这本书本身就是一场思想实验，旨在证明源于《计算机程序的构造与解释》（SICP）的计算思想，特别是高阶函数等强大的抽象工具，足以用来精确、优雅地表述深奥的物理学概念，如拉格朗日力学和哈密顿力学 3。scmutils 并非一个普通的函数库，它是一个教学工具，一种用于表达物理定律的语言。其核心理念在于，物理系统可以通过符号表达式来建模，并通过泛型运算符（generic operators）进行操作 4。这种将代码、数学和物理思想融为一体的方法，构成了 emmy 继承而来的最宝贵的遗产。然而，scmutils 的实践应用也面临着时代的技术局限。它深度绑定于一个特定且相对陈旧的 MIT/GNU Scheme 实现，并且其图形功能依赖于 X Window System，这为希望在现代开发环境中学习和使用它的研究人员和开发者设置了不小的障碍 1。1.2. Clojure 的移植：sicm-utils 的兴起与传承为了克服 scmutils 的技术壁垒，并将其强大的思想引入现代 Lisp 方言，Clojure 社区发起了移植工作，其成果便是 sicm-utils 库 2。这一举措的动机是多方面的：首先，它希望利用 Clojure 在 Java 虚拟机（JVM）和 JavaScript 生态中的跨平台优势；其次，开发者可以享受到现代化的工具链、集成开发环境（IDE）以及庞大的第三方库支持 1；最后，也是最重要的一点，它将 SICM 的深刻思想向更广泛的 Clojure 社区敞开了大门。sicm-utils 的开发并非简单的代码翻译。它是一次“从头开始的重写”（ground-up rewrite），旨在使代码更符合 Clojure 的语言习惯（idiomatic），例如广泛使用解构（destructuring）等特性，而非机械地将 Scheme 代码逐行转换 2。这个项目成功地在 Clojure(Script) 环境中复现了 scmutils 的核心功能，为后续的演进奠定了坚实的基础。1.3. 新生：emmy 作为现代继承者sicm-utils 的最终演进形态是 emmy。sicm-utils 的最后一个版本（0.23.0）的发布说明中明确指出，这将是其“最终版本，之后库中的大部分代码将被提取出来，并以‘Emmy 计算机代数系统’的新身份和新家园示人” 8。这标志着一个时代的结束和另一个时代的开启。emmy 不仅仅是一个新名字，它代表了项目的成熟和愿景的扩展。sicm-utils 的最终版本包含了大量的升级和重构，从力学命名空间的完善到性能优化和依赖清理，无所不包 8。这次大规模的整理工作，实际上是为向 emmy 的平稳过渡所做的准备。从 sicm-utils 到“Emmy 计算机代数系统”的更名，其意义远超品牌重塑。原名中的“utils”（工具集）一词，暗示了它主要是作为 SICM 教科书的辅助工具。相比之下，“计算机代数系统”（Computer Algebra System, CAS）这一称谓则揭示了其更为宏大的抱负。它将项目定位为一个通用的数学工具，旨在与 Mathematica 或 SymPy 等成熟系统相提并论，而不仅仅是某本教材的伴侣。项目开发者将其描述为一个“开源、交互式、可塑造的 Mathematica 替代品”，进一步印证了这一战略转变 9。新名称 emmy 很可能是为了致敬伟大的数学家埃米·诺特（Emmy Noether），她在对称性与守恒定律方面的工作（诺特定理）是拉格朗日力学的核心。这一命名选择，也强化了该项目从一个特定领域的工具向一个更通用、更深刻的数学平台的演进。第 2 节：emmy 的架构支柱emmy 的强大功能构建在几个关键的架构设计之上，这些设计共同构成了一个灵活、可扩展且高度表达性的计算环境。2.1. 核心抽象：泛型运算emmy 设计的精髓在于其泛型运算符系统。像 +、*、sin、D（微分算子）等基本数学运算，被设计成多态的（polymorphic），能够作用于多种截然不同的数据类型 4。例如，加法 + 不仅能用于数字，还能自然地应用于函数、向量、矩阵乃至符号表达式，从而允许用户编写出极为简洁且富有表现力的数学代码 1。这个可扩展的系统依赖于一组核心的泛型函数。kind 用于查询对象的类型，zero-like 和 one-like 分别返回相应类型的加法和乘法单位元，而 square（平方）和 compose（函数复合）等高阶函数则进一步丰富了系统的表达能力 4。这种设计使得向系统添加新的数据类型并使其与现有运算无缝集成成为可能。2.2. 数值塔：从有理数到四元数emmy 显著扩展了 Clojure 的原生数值体系。其完整的“数值塔”不仅包括标准的整数和浮点数，还内置了对精确有理数（在 ClojureScript 中通过 Fraction.js 实现）、复数和四元数的支持 1。这些数据类型都深度集成到泛型运算系统中，使得跨类型的数学计算变得无缝且直观 5。2.3. 符号表达式：数学的语言符号计算是 emmy 的核心功能之一。在 emmy 中，Clojure 的符号（如 'x、'alpha）被解释为抽象的数学字面量（literal mathematical objects）10。当对这些符号进行算术运算时，系统不会立即求值，而是构建一个代表该运算的符号表达式树 6。例如，(e/+ 'x 'x) 的结果是符号表达式 (* 2 x)，而不是一个错误。literal-function 是一个尤为重要的概念，它允许将一个符号（如 'f）声明为一个抽象函数。这个抽象函数可以像普通函数一样被微分、复合和代入参数，是进行高阶符号演算的基础 1。2.4. 结构体：表示向量、张量与状态为了表示多维数据，emmy 引入了“结构体”（Structures）的概念。它将 Clojure 的原生向量 [...] 等同于数学上的 n 维向量 13。更重要的是，emmy 严格区分了 up 元组（逆变向量，contravariant vectors）和 down 元组（协变向量/1-形式，covariant vectors/one-forms），这对于微分几何和张量分析中的计算至关重要 13。与结构体相关的核心函数包括 dimension（返回结构体的总维度）、count（返回顶层元素的数量）、ref 或 get（用于访问元素）以及 up 和 down 构造函数 13。这些工具共同构成了一套用于处理结构化数学对象的强大接口。2.5. 简化引擎原始的符号表达式树往往冗长且难以阅读。simplify 函数是 emmy 中用于将这些表达式转换为更简洁、更符合人类直觉形式的关键工具 5。简化是一个复杂的过程，其背后是一个强大的引擎。文档表明，该引擎包含多个组件，如“规则引擎”（Rule Engine）、“多项式简化器”（Polynomial Simplifier）和“有理函数”（Rational Function）模块 1。这暗示了其内部机制可能包括将表达式转换为规范的多项式或有理函数形式，以此来实现深度化简 14。第 3 节：实践应用：emmy 功能导览理论架构的优雅最终需要通过实际应用来体现。本节将通过具体的代码示例，展示 emmy 在符号处理、微积分和物理建模中的核心能力。3.1. 符号操作与渲染emmy 的基础是创建和变换符号表达式。用户可以像操作普通数据一样构建复杂的数学公式。定义与简化一个典型的例子是定义三角恒等式并进行化简。Clojure;; 定义表达式 sin^2(x) + cos^2(x)
+对 Emmy 计算机代数系统及其与 Clerk 集成的深度解析: Clojure 中的文学化科学计算
+* 第 1 节: 从 scmutils 到 emmy 的演进:
+
+两种 Lisp 的故事
+
+* 1.1. 奠基之作
+
+scmutils 与<经典力学的结构与解释>计算机代数系统的历史长河中, 鲜有项目能像 emmy 这样, 其血脉可以清晰地追溯到一本具有里程碑意义的教科书.
+
+emmy 的哲学与技术根基源于 Gerald Jay Sussman 和 Jack Wisdom 合著的<经典力学的结构与解释>(Structure and Interpretation of Classical Mechanics, SICM), 以及与之配套的 Scheme 库--scmutils
+
+这本书本身就是一场思想实验, 旨在证明源于<计算机程序的构造与解释>(SICP)的计算思想, 特别是高阶函数等强大的抽象工具, 足以用来精确, 优雅地表述深奥的物理学概念, 如拉格朗日力学和哈密顿力学.
+
+ scmutils 并非一个普通的函数库, 它是一个教学工具, 一种用于表达物理定律的语言. 其核心理念在于, 物理系统可以通过符号表达式来建模, 并通过泛型运算符(generic operators)进行操作.
+
+ 这种将代码, 数学和物理思想融为一体的方法, 构成了 emmy 继承而来的最宝贵的遗产. 然而, scmutils 的实践应用也面临着时代的技术局限.
+
+它深度绑定于一个特定且相对陈旧的 MIT/GNU Scheme 实现, 并且其图形功能依赖于 X Window System, 这为希望在现代开发环境中学习和使用它的研究人员和开发者设置了不小的障碍.
+* 1.2. Clojure 的移植
+
+sicm-utils 的兴起与传承为了克服 scmutils 的技术壁垒, 并将其强大的思想引入现代 Lisp 方言, Clojure 社区发起了移植工作, 其成果便是 sicm-utils 库.
+
+这一举措的动机是多方面的: 首先, 它希望利用 Clojure 在 Java 虚拟机(JVM)和 JavaScript 生态中的跨平台优势; 其次, 开发者可以享受到现代化的工具链, 集成开发环境(IDE)以及庞大的第三方库支持;
+
+最后, 也是最重要的一点, 它将 SICM 的深刻思想向更广泛的 Clojure 社区敞开了大门. sicm-utils 的开发并非简单的代码翻译.
+
+它是一次" 从头开始的重写" (ground-up rewrite), 旨在使代码更符合 Clojure 的语言习惯(idiomatic), 例如广泛使用解构(destructuring)等特性, 而非机械地将 Scheme 代码逐行转换.
+
+ 这个项目成功地在 Clojure(Script) 环境中复现了 scmutils 的核心功能, 为后续的演进奠定了坚实的基础.
+* 1.3. 新生
+
+emmy 作为现代继承者sicm-utils 的最终演进形态是 emmy. sicm-utils 的最后一个版本(0.23.0)的发布说明中明确指出, 这将是其" 最终版本, 之后库中的大部分代码将被提取出来, 并以' Emmy 计算机代数系统' 的新身份和新家园示人".
+
+这标志着一个时代的结束和另一个时代的开启. emmy 不仅仅是一个新名字, 它代表了项目的成熟和愿景的扩展. sicm-utils 的最终版本包含了大量的升级和重构, 从力学命名空间的完善到性能优化和依赖清理, 无所不包.
+
+ 这次大规模的整理工作, 实际上是为向 emmy 的平稳过渡所做的准备. 从 sicm-utils 到"Emmy 计算机代数系统" 的更名, 其意义远超品牌重塑. 原名中的" utils" (工具集)一词, 暗示了它主要是作为 SICM 教科书的辅助工具.
+
+相比之下, " 计算机代数系统" (Computer Algebra System, CAS)这一称谓则揭示了其更为宏大的抱负. 它将项目定位为一个通用的数学工具, 旨在与 Mathematica 或 SymPy 等成熟系统相提并论, 而不仅仅是某本教材的伴侣.
+
+项目开发者将其描述为一个" 开源, 交互式, 可塑造的 Mathematica 替代品" , 进一步印证了这一战略转变. 新名称 emmy 很可能是为了致敬伟大的数学家埃米·诺特(Emmy Noether), 她在对称性与守恒定律方面的工作(诺特定理)是拉格朗日力学的核心.
+
+这一命名选择, 也强化了该项目从一个特定领域的工具向一个更通用, 更深刻的数学平台的演进.
+
+* 第 2 节: emmy 的架构支柱emmy 的强大功能构建在几个关键的架构设计之上, 这些设计共同构成了一个灵活, 可扩展且高度表达性的计算环境.
+
+** 2.1. 核心抽象
+
+泛型运算emmy 设计的精髓在于其泛型运算符系统. 像 ~+, *, sin, D(微分算子)~ 等基本数学运算, 被设计成多态的(polymorphic), 能够作用于多种截然不同的数据类型.
+
+ 例如, 加法 ~+~ 不仅能用于数字, 还能自然地应用于函数, 向量, 矩阵乃至符号表达式, 从而允许用户编写出极为简洁且富有表现力的数学代码. 这个可扩展的系统依赖于一组核心的泛型函数.
+
+~kind~ 用于查询对象的类型, ~zero-like~ 和 ~one-like~ 分别返回相应类型的加法和乘法单位元, 而 square(平方)和 compose(函数复合)等高阶函数则进一步丰富了系统的表达能力. 这种设计使得向系统添加新的数据类型并使其与现有运算无缝集成成为可能.
+
+** 2.2. 数值塔: 从有理数到四元数emmy 显著扩展了 Clojure 的原生数值体系.
+
+其完整的"数值塔" 不仅包括标准的整数和浮点数, 还内置了对精确有理数(在 ClojureScript 中通过 Fraction.js 实现), 复数和四元数的支持.
+
+这些数据类型都深度集成到泛型运算系统中, 使得跨类型的数学计算变得无缝且直观.
+
+** 2.3. 符号表达式: 数学的语言符号计算是 emmy 的核心功能之一.
+
+在 emmy 中, Clojure 的符号(如 ~'x, 'alpha~)被解释为抽象的数学字面量(literal mathematical objects). 当对这些符号进行算术运算时, 系统不会立即求值, 而是构建一个代表该运算的符号表达式树.
+
+例如, ~(e/+ 'x 'x)~ 的结果是符号表达式 ~(* 2 x)~, 而不是一个错误. literal-function 是一个尤为重要的概念, 它允许将一个符号(如 'f)声明为一个抽象函数. 这个抽象函数可以像普通函数一样被微分, 复合和代入参数, 是进行高阶符号演算的基础.
+
+** 2.4. 结构体
+
+表示向量, 张量与状态为了表示多维数据, emmy 引入了" 结构体" (Structures)的概念. 它将 Clojure 的原生向量 [...] 等同于数学上的 n 维向量.
+
+更重要的是, emmy 严格区分了 up 元组(逆变向量, contravariant vectors)和 down 元组(协变向量/1-形式, covariant vectors/one-forms), 这对于微分几何和张量分析中的计算至关重要 .
+
+与结构体相关的核心函数包括 dimension(返回结构体的总维度), count(返回顶层元素的数量), ref 或 get(用于访问元素)以及 up 和 down 构造函数. 这些工具共同构成了一套用于处理结构化数学对象的强大接口.
+
+** 2.5. 简化
+
+引擎原始的符号表达式树往往冗长且难以阅读. simplify 函数是 emmy 中用于将这些表达式转换为更简洁, 更符合人类直觉形式的关键工具.
+
+简化是一个复杂的过程, 其背后是一个强大的引擎. 文档表明, 该引擎包含多个组件, 如" 规则引擎" (Rule Engine), " 多项式简化器" (Polynomial Simplifier)和" 有理函数" (Rational Function)模块.
+
+这暗示了其内部机制可能包括将表达式转换为规范的多项式或有理函数形式, 以此来实现深度化简.
+
+* 第 3 节: 实践应用
+
+emmy 功能导览理论架构的优雅最终需要通过实际应用来体现. 本节将通过具体的代码示例, 展示 emmy 在符号处理, 微积分和物理建模中的核心能力.
+
+** 3.1. 符号操作与渲染
+
+emmy 的基础是创建和变换符号表达式. 用户可以像操作普通数据一样构建复杂的数学公式. 定义与简化一个典型的例子是定义三角恒等式并进行化简. 定义表达式 ~sin^2(x) + cos^2(x)~
+#+begin_src clojure
 (def expr (e/+ (e/square (e/sin 'x))
                (e/square (e/cos 'x))))
 
 ;; 使用 simplify 函数化简
 (e/simplify expr)
 ;; => 1
-这个例子直观地展示了 simplify 函数如何将一个复杂的符号表达式归约为其最简形式 1。渲染为字符串与 LaTeX为了展示和交流，emmy 提供了多种渲染方式。->infix 函数可以将其转换为人类可读的中缀表示法字符串，而 ->TeX 则生成高质量的 LaTeX 代码，用于在学术文档或支持 MathJax/KaTeX 的环境中进行精美排版 5。Clojure;; 定义一个表达式
+这个例子直观地展示了 simplify 函数如何将一个复杂的符号表达式归约为其最简形式 1. 渲染为字符串与 LaTeX为了展示和交流, emmy 提供了多种渲染方式. ->infix 函数可以将其转换为人类可读的中缀表示法字符串, 而 ->TeX 则生成高质量的 LaTeX 代码, 用于在学术文档或支持 MathJax/KaTeX 的环境中进行精美排版 5. Clojure;; 定义一个表达式
 (def formula (e/square (e/sin (e/+ 'x 'y))))
 
 ;; 转换为中缀字符串
 (e/->infix formula)
-;; => "sin(x + y)^2"  (注意：实际输出可能为 "sin²(x + y)")
+;; => "sin(x + y)^2"  (注意: 实际输出可能为 "sin²(x + y)")
 
 ;; 转换为 LaTeX 字符串
 (e/->TeX formula)
 ;; => "{\\sin}^{2}\\left(x + y\\right)"
-3.2. 微积分：微分与积分微积分是 emmy 功能的核心部分，尤其是在微分方面。自动与符号微分强大的 D 算子是 emmy 中进行微分操作的核心。它可以作用于任何 emmy 函数（包括符号函数），并返回其导数。Clojure;; 求 x^3 的导数
+#+end_src
+
+** 3.2. 微积分
+
+微分与积分微积分是 emmy 功能的核心部分, 尤其是在微分方面. 自动与符号微分强大的 D 算子是 emmy 中进行微分操作的核心. 它可以作用于任何 emmy 函数(包括符号函数), 并返回其导数.
+
+#+begin_src clojure
+;;求 x^3 的导数
 (e/simplify ((e/D e/cube) 'x))
 ;; => (* 3 (square x))
-这个例子展示了符号微分的直接性 5。D 算子甚至可以被指数化，用于生成泰勒级数展开，这体现了其深刻的数学内涵 10。Clojure;; 生成函数 f(x) 在 x 点的泰勒级数展开（取前5项）
+#+end_src
+这个例子展示了符号微分的直接性. D 算子甚至可以被指数化, 用于生成泰勒级数展开, 这体现了其深刻的数学内涵.
+#+begin_src clojure
+;; 生成函数 f(x) 在 x 点的泰勒级数展开(取前5项)
 (let [f (e/literal-function 'f)]
   (e/series:sum
    (((e/exp e/D) f) 'x)
    5))
-数值积分关于积分，需要做一个重要澄清：emmy 提供了强大的数值积分（也称求积，quadrature）功能，用于计算定积分的数值近似值 6。emmy.expression.compile 命名空间的文档中提到了为 definite-integral 等函数编译优化过的函数 15。这意味着用户可以对一个函数在给定区间上求得一个精确到特定小数位的数值结果。3.3. 案例研究：中心力问题中的拉格朗日力学为了综合展示 emmy 的威力，我们可以重现其文档中的一个经典物理问题：在极坐标下求解中心力场的运动方程 1。第 1 步：定义拉格朗日量拉格朗日量 L=T−V，其中 T 是动能，V 是势能。在极坐标 (r,θ) 中，一个质量为 m 的粒子的动能是 T=21​m(r˙2+(rθ˙)2)。我们可以定义一个高阶函数来表示它。Clojure(defn L-central-polar [m U]
-  (fn [[r][rdot thetadot]]]
-    (e/- (e/* 1/2 m (e/+ (e/square rdot)
-                          (e/square (e/* r thetadot))))
-         (U r))))
-这里的 U 是一个代表势能的抽象函数。第 2 步：定义系统状态我们使用 literal-function 来定义广义坐标 r(t) 和 θ(t)。Clojure(let [potential-fn (e/literal-function 'U)
-      L (L-central-polar 'm potential-fn)
-      state (e/up (e/literal-function 'r)
-                  (e/literal-function 'theta))]
-  ,,,)
-第 3 步：生成运动方程emmy 提供了 Lagrange-equations 算子，它可以自动地作用于拉格朗日量和状态，推导出系统的欧拉-拉格朗日方程。dtd​∂q˙​∂L​−∂q∂L​=0Clojure;; 在上一步的 let 绑定中继续
-(let [;;... (接上文)
-      equations (e/simplify
-                 (((e/Lagrange-equations L) state) 't))]
-  equations)
-第 4 步：渲染结果最后，得到的符号方程组可以通过 ->TeX 渲染出来，其结果将是清晰、规范的数学公式，完美展示了系统在 r 和 θ 两个方向上的运动规律 1。这个过程从定义物理原则到自动推导并展示最终方程，全程在 Clojure 代码中完成，体现了 emmy 作为物理研究工具的强大表达力。第 4 节：文学化工作流：集成 emmy 与 Clerkemmy 的计算能力与 Nextjournal 的 Clerk 相结合，为 Clojure 社区带来了一种全新的、强大的文学化编程（Literate Programming）体验。这种组合使得编写包含叙述、代码、数学公式和可视化结果的交互式文档成为可能。4.1. Clerk：Clojure 的交互式新范式Clerk 是一个为 Clojure 设计的“可塑造的开发环境”（moldable development environment）16。它与传统的笔记本（notebook）范式有所不同。Clerk 直接作用于标准的 Clojure 命名空间文件（.clj 文件），其中的代码块会被求值并展示结果，而特殊的注释块（;;）则被渲染成 Markdown 格式的叙述性文本 17。Clerk 的关键特性包括：本地优先与编辑器集成：用户可以在自己熟悉的编辑器中工作，无需离开现有环境 16。从上到下求值：Clerk 严格按照代码在文件中的顺序执行，有效避免了传统笔记本中因乱序执行（out-of-order execution）导致的复现性问题 18。智能缓存：Clerk 会对每个顶层代码块（top-level form）的结果进行缓存，当文件变动时，仅重新计算发生变化的部分及其依赖，从而实现近乎瞬时的反馈 16。4.2. 搭建 emmy + Clerk 环境将 emmy 集成到 Clerk 工作流中有两种主要方式。方法一：推荐路径（项目模板）最简单、最直接的方式是使用 emmy 官方提供的 emmy/clerk deps-new 模板。这个模板会自动配置好所有必要的依赖、构建脚本和目录结构，让用户可以立即开始工作 6。安装 deps-new 工具：Shellclojure -Ttools install io.github.seancorfield/deps-new '{:git/tag "v0.5.0"}' :as new
-使用模板创建新项目：Shellclojure -Sdeps '{:deps {io.github.mentat-collective/emmy {:git/sha "f807468438482773021d86ab293a89b97338405a"}}}' \
+#+end_src
+数值积分关于积分, 需要做一个重要澄清: emmy 提供了强大的数值积分(也称求积, quadrature)功能, 用于计算定积分的数值近似值. emmy.expression.compile 命名空间的文档中提到了为 definite-integral 等函数编译优化过的函数.
+
+这意味着用户可以对一个函数在给定区间上求得一个精确到特定小数位的数值结果.
+
+** 3.3. 案例研究
+
+中心力问题中的拉格朗日力学为了综合展示 emmy 的威力, 我们可以重现其文档中的一个经典物理问题: 在极坐标下求解中心力场的运动方程
+1. 第 1 步: 定义拉格朗日量拉格朗日量 L=T−V, 其中 T 是动能, V 是势能. 在极坐标 (r,θ) 中, 一个质量为 m 的粒子的动能是 T=21​m(r˙2+(rθ˙)2). 我们可以定义一个高阶函数来表示它.
+
+  #+begin_src clojure
+  (defn L-central-polar [m U]
+    (fn [[r][rdot thetadot]]]
+      (e/- (e/* 1/2 m (e/+ (e/square rdot)
+                            (e/square (e/* r thetadot))))
+           (U r))))
+  #+end_src
+  这里的 U 是一个代表势能的抽象函数.
+
+2. 第 2 步: 定义系统状态我们使用 literal-function 来定义广义坐标 r(t) 和 θ(t).
+  #+begin_src clojure
+  (let [potential-fn (e/literal-function 'U)
+        L (L-central-polar 'm potential-fn)
+        state (e/up (e/literal-function 'r)
+                    (e/literal-function 'theta))]
+    ,,,)
+  #+end_src
+
+3. 第 3 步: 生成运动方程
+
+  emmy 提供了 Lagrange-equations 算子, 它可以自动地作用于拉格朗日量和状态, 推导出系统的欧拉-拉格朗日方程. dtd​∂q˙​∂L​−∂q∂L​=0
+  #+begin_src clojure
+  ;; 在上一步的 let 绑定中继续
+  (let [;;... (接上文)
+        equations (e/simplify
+                   (((e/Lagrange-equations L) state) 't))]
+    equations)
+  #+end_src
+
+4. 第 4 步: 渲染结果最后, 得到的符号方程组可以通过 ->TeX 渲染出来, 其结果将是清晰, 规范的数学公式, 完美展示了系统在 r 和 θ 两个方向上的运动规律.
+
+  这个过程从定义物理原则到自动推导并展示最终方程, 全程在 Clojure 代码中完成, 体现了 emmy 作为物理研究工具的强大表达力.
+
+
+
+**  第 4 节: 文学化工作流
+
+集成 emmy 与 Clerkemmy 的计算能力与 Nextjournal 的 Clerk 相结合, 为 Clojure 社区带来了一种全新的, 强大的文学化编程(Literate Programming)体验. 这种组合使得编写包含叙述, 代码, 数学公式和可视化结果的交互式文档成为可能.
+
+*** 4.1. Clerk: Clojure 的交互式新范式
+
+Clerk 是一个为 Clojure 设计的" 可塑造的开发环境" (moldable development environment). 它与传统的笔记本(notebook)范式有所不同.
+
+Clerk 直接作用于标准的 Clojure 命名空间文件(.clj 文件), 其中的代码块会被求值并展示结果, 而特殊的注释块(;;)则被渲染成 Markdown 格式的叙述性文本.
+
+Clerk 的关键特性包括: 本地优先与编辑器集成: 用户可以在自己熟悉的编辑器中工作, 无需离开现有环境.
+
+从上到下求值: Clerk 严格按照代码在文件中的顺序执行, 有效避免了传统笔记本中因乱序执行(out-of-order execution)导致的复现性问题.
+
+智能缓存: Clerk 会对每个顶层代码块(top-level form)的结果进行缓存, 当文件变动时, 仅重新计算发生变化的部分及其依赖, 从而实现近乎瞬时的反馈.
+
+*** 4.2. 搭建 emmy + Clerk 环境
+
+将 emmy 集成到 Clerk 工作流中有两种主要方式. 方法一: 推荐路径(项目模板)最简单, 最直接的方式是使用 emmy 官方提供的 emmy/clerk deps-new 模板.
+
+这个模板会自动配置好所有必要的依赖, 构建脚本和目录结构, 让用户可以立即开始工作.
+
+安装 deps-new 工具:
+
+#+begin_src shell
+Shellclojure -Ttools install io.github.seancorfield/deps-new '{:git/tag "v0.5.0"}' :as new
+#+end_src
+使用模板创建新项目:
+
+#+begin_src shell :results pp :exports both
+Shellclojure -Sdeps '{:deps {io.github.mentat-collective/emmy {:git/sha "f807468438482773021d86ab293a89b97338405a"}}}' \
 -Tnew create \
 :template emmy/clerk \
 :name myusername/my-notebook-project
-方法二：手动集成到现有项目对于已有项目，需要手动进行配置。添加依赖：在项目的 deps.edn 文件中加入 io.github.nextjournal/clerk 和 io.github.mentat-collective/emmy 10。配置 ClojureScript 构建：这是一个关键步骤。由于 emmy 的许多功能（尤其是可视化部分）依赖于 JavaScript 组件，因此在 Clerk 中使用它需要一个自定义的 ClojureScript 构建过程。clerk-utils 项目可以帮助简化这一配置 10。启动 Clerk 服务器：在项目的 user.clj 或类似的启动文件中，引入并启动 Clerk 的文件监视服务器 18。Clojure(require '[nextjournal.clerk :as clerk])
+#+end_src
+
+方法二: 手动集成到现有项目对于已有项目, 需要手动进行配置. 添加依赖: 在项目的 deps.edn 文件中加入 io.github.nextjournal/clerk 和 io.github.mentat-collective/emmy.
+
+配置 ClojureScript 构建: 这是一个关键步骤. 由于 emmy 的许多功能(尤其是可视化部分)依赖于 JavaScript 组件, 因此在 Clerk 中使用它需要一个自定义的 ClojureScript 构建过程.
+
+clerk-utils 项目可以帮助简化这一配置. 启动 Clerk 服务器: 在项目的 user.clj 或类似的启动文件中, 引入并启动 Clerk 的文件监视服务器.
+
+#+begin_src clojure
+Clojure(require '[nextjournal.clerk :as clerk])
 
 (clerk/serve! {:watch-paths ["src" "notebooks"]})
-4.3. 基础渲染管线：从符号到 TeX在 Clerk 中展示 emmy 计算出的数学公式是最常见的应用场景。其工作流程遵循一个清晰的两步过程。以下是一个完整的、最小化的 Clerk 笔记本文件（例如 notebooks/intro.clj）示例：命名空间声明：Clojure(ns notebooks.intro
+#+end_src
+
+*** 4.3. 基础渲染管线
+
+从符号到 TeX在 Clerk 中展示 emmy 计算出的数学公式是最常见的应用场景. 其工作流程遵循一个清晰的两步过程. 以下是一个完整的, 最小化的 Clerk 笔记本文件(例如 ~notebooks/intro.clj~)示例: 命名空间声明:
+
+ #+begin_src clojure
+ (ns notebooks.intro
   (:require [nextjournal.clerk :as clerk]
             [emmy.env :as e :refer :all]))
-渲染流程：使用 emmy 函数创建符号表达式，并通过 ->TeX 将其转换为 LaTeX 格式的字符串。将这个 LaTeX 字符串传递给 Clerk 内置的 clerk/tex 查看器进行渲染 10。Clojure;; 定义一个方便渲染的辅助函数
+ #+end_src
+渲染流程: 使用 emmy 函数创建符号表达式, 并通过 ->TeX 将其转换为 LaTeX 格式的字符串. 将这个 LaTeX 字符串传递给 Clerk 内置的 clerk/tex 查看器进行渲染.
+#+begin_src clojure
+;;定义一个方便渲染的辅助函数
 (def render (comp clerk/tex ->TeX))
 
 ;;; ## 勾股定理
 ;;;
-;;; 著名的三角恒等式：
+;;; 著名的三角恒等式:
 ;;; $${\sin}^{2}(x) + {\cos}^{2}(x) = 1$$
 
 (render
  (simplify (e/+ (e/square (e/sin 'x))
                 (e/square (e/cos 'x)))))
-当 Clerk 运行时，上述代码块将被求值，simplify 返回 1，render 函数将其包装成 Clerk 的 TeX 视图，最终在浏览器中显示为数字 1。上面的 Markdown 注释则会被渲染成标题和文本。为了更清晰地展示 emmy 与 Clerk 的协作模式，下表总结了不同类型的 emmy 对象如何通过 Clerk 进行可视化。这个表格作为一个快速参考，可以帮助用户迅速掌握核心的交互模式。emmy 输出类型 / 函数emmy 转换Clerk 查看器结果符号表达式->TeXclerk/tex格式化的 LaTeX 数学公式符号表达式->infixclerk/code 或原生字符串中缀表示法字符串标准 Clojure 数据(无)clerk/table, clerk/code 等默认的 Clerk 查看器emmy-viewers 绘图对象(无)(通过 ec/install! 自动)交互式 2D/3D 绘图第 5 节：使用 emmy-viewers 进行高级可视化当静态的 LaTeX 公式不足以表达动态的数学思想时，emmy-viewers 库便登上了舞台。它为 emmy 提供了强大的交互式 2D 和 3D 可视化能力。5.1. emmy-viewers 简介emmy-viewers 是一个独立的伴生库，专门用于对 emmy 中的数学对象进行高性能的可视化渲染 20。它本身是一个 ClojureScript 库，底层构建于一系列优秀的 JavaScript 可视化库之上，包括用于 2D 绘图的 Mafs.cljs、用于 3D 场景的 MathBox.cljs、用于交互式几何的 JSXGraph.cljs 以及用于 UI 控件的 Leva.cljs 等 20。这决定了它的运行环境必须是浏览器。5.2. 设置与配置与 emmy 核心库类似，使用 emmy-viewers 的最佳起点是官方提供的项目模板 emmy-viewers/clerk 22。对于手动配置，步骤如下：添加依赖：在 deps.edn 中加入 org.mentat/emmy-viewers 依赖 20。安装查看器：在 Clerk 笔记本的命名空间中，除了引入需要的绘图命名空间（如 emmy.mafs），还必须调用 (emmy.clerk/install!) 20。这个函数是关键，它会向 Clerk 注册 emmy-viewers 的自定义查看器，使得 Clerk 知道如何渲染 mafs 或 plot 函数返回的特殊数据结构。启动服务器：使用 emmy.clerk 命名空间提供的 serve! 函数来启动 Clerk，而不是 nextjournal.clerk 中的同名函数，以确保所有配置正确加载 20。5.3. 使用 mafs 创建交互式 2D 绘图以下是一个完整的、可工作的 2D 绘图示例。命名空间设置：Clojure(ns emmy.demo
+当 Clerk 运行时, 上述代码块将被求值, simplify 返回 1, render 函数将其包装成 Clerk 的 TeX 视图, 最终在浏览器中显示为数字 1. 上面的 Markdown 注释则会被渲染成标题和文本. 为了更清晰地展示 emmy 与 Clerk 的协作模式, 下表总结了不同类型的 emmy 对象如何通过 Clerk 进行可视化. 这个表格作为一个快速参考, 可以帮助用户迅速掌握核心的交互模式. emmy 输出类型 / 函数emmy 转换Clerk 查看器结果符号表达式->TeXclerk/tex格式化的 LaTeX 数学公式符号表达式->infixclerk/code 或原生字符串中缀表示法字符串标准 Clojure 数据(无)clerk/table, clerk/code 等默认的 Clerk 查看器emmy-viewers 绘图对象(无)(通过 ec/install! 自动)交互式 2D/3D 绘图第 5 节: 使用 emmy-viewers 进行高级可视化当静态的 LaTeX 公式不足以表达动态的数学思想时, emmy-viewers 库便登上了舞台. 它为 emmy 提供了强大的交互式 2D 和 3D 可视化能力. 5.1. emmy-viewers 简介emmy-viewers 是一个独立的伴生库, 专门用于对 emmy 中的数学对象进行高性能的可视化渲染 20. 它本身是一个 ClojureScript 库, 底层构建于一系列优秀的 JavaScript 可视化库之上, 包括用于 2D 绘图的 Mafs.cljs, 用于 3D 场景的 MathBox.cljs, 用于交互式几何的 JSXGraph.cljs 以及用于 UI 控件的 Leva.cljs 等 20. 这决定了它的运行环境必须是浏览器. 5.2. 设置与配置与 emmy 核心库类似, 使用 emmy-viewers 的最佳起点是官方提供的项目模板 emmy-viewers/clerk 22. 对于手动配置, 步骤如下: 添加依赖: 在 deps.edn 中加入 org.mentat/emmy-viewers 依赖 20. 安装查看器: 在 Clerk 笔记本的命名空间中, 除了引入需要的绘图命名空间(如 emmy.mafs), 还必须调用 (emmy.clerk/install!) 20. 这个函数是关键, 它会向 Clerk 注册 emmy-viewers 的自定义查看器, 使得 Clerk 知道如何渲染 mafs 或 plot 函数返回的特殊数据结构. 启动服务器: 使用 emmy.clerk 命名空间提供的 serve! 函数来启动 Clerk, 而不是 nextjournal.clerk 中的同名函数, 以确保所有配置正确加载 20. 5.3. 使用 mafs 创建交互式 2D 绘图以下是一个完整的, 可工作的 2D 绘图示例. 命名空间设置: Clojure(ns emmy.demo
   (:refer-clojure :exclude [+ - * / zero? compare divide numerator denominator
                             infinite? abs ref partial =])
   (:require [emmy.clerk :as ec]
@@ -71,10 +247,14 @@
 ;; 在当前命名空间安装 emmy-viewers 的自定义查看器
 ^{::clerk/visibility {:code :hide :result :hide}}
 (ec/install!)
-20示例代码：mafs 库提供了一系列组件化的函数来构建 2D 图形。Clojure;; 绘制一个简单的蓝色正弦函数
+#+end_src
+示例代码: mafs 库提供了一系列组件化的函数来构建 2D 图形.
+
+#+begin_src clojure
+;; 绘制一个简单的蓝色正弦函数
 (mafs/of-x e/sin {:color :blue})
 
-;; 组合多个元素：坐标系、余弦函数和一条直线
+;; 组合多个元素: 坐标系, 余弦函数和一条直线
 (mafs/mafs
  {}
  (mafs/cartesian)
@@ -83,7 +263,12 @@
 
 ;; 绘制不等式 sin(x) <= y < cos(x) 所表示的区域
 (mafs/inequality {:y {:<= e/cos :> e/sin}})
-205.4. 创建 3D 场景与“可塑造的微世界”emmy.mathbox.plot 命名空间则负责 3D 场景的构建。示例代码：Clojure(require '[emmy.mathbox.plot :as plot])
+#+end_src
+
+创建 3D 场景与" 可塑造的微世界" emmy.mathbox.plot 命名空间则负责 3D 场景的构建. 示例代码:
+
+#+begin_src clojure
+(require '[emmy.mathbox.plot :as plot])
 
 ;; 绘制一条 3D 参数曲线 (sin(t), cos(t), t/3)
 (plot/scene
@@ -91,4 +276,72 @@
   {:f (e/up e/sin e/cos (e// e/identity 3))
    :t [-10 10]
    :color :green}))
-20emmy 的作者 Sam Ritchie 在其演讲中反复提及“可塑造的物理”（moldable physics）和“Lisp 式的微世界”（lispy microworlds）的概念 9。这并不仅仅指静态的绘图。emmy-viewers 的真正威力在于其交互性。通过 emmy.leva/controls 和 emmy.viewer/with-let 等工具，可以直接在笔记本中创建 UI 控件（如滑块），并将这些控件的值绑定到 Clojure 的 atom 上 20。绘图函数中使用的符号表达式可以响应这些 atom 值的变化，并实时更新图形。这种设计创造了一个紧密的反馈循环：用户通过 UI 控件操纵参数，并立即观察到这些变化对数学模型的视觉影响。这正是“可塑造的微世界”的精髓所在——一个自包含的、可编程的、交互式的模拟环境。例如，可以创建一个滑块来控制一个相位参数 phase，并观察一个 3D 曲面 sin(x - phase) 如何随滑块的拖动而实时变化，从而直观地理解相位参数的作用。第 6 节：探讨高级主题与当前局限任何强大的工具都有其适用范围和局限性。对 emmy 进行全面评估，必须诚实地探讨其在某些高级功能上的现状。6.1. 符号积分：可能性与现实这是一个需要明确澄清的关键点。emmy 的核心功能列表包括数值积分（numerical integration）和数值优化（numerical optimization）6。这意味着它可以计算定积分的数值近似值。emmy.expression.compile 命名空间也明确提到，它可以编译用于 definite-integral 的函数，这进一步证实了其在数值积分方面的能力 15。然而，在所有已审查的文档和代码库中，均未发现 emmy 提供了通用的符号积分（symbolic integration）功能，即寻找一个函数的不定积分（antiderivative）1。符号积分功能的缺失并非疏忽，而是其算法极端复杂性的体现。正如在其他计算机代数系统社区的讨论中所揭示的，实现一个鲁棒的符号积分器是一项巨大的工程，通常需要融合多种算法，例如基于规则的系统（如 RUBI）和更通用的算法（如 Risch 算法）24。emmy 项目源于 scmutils，其发展重点一直围绕着 SICM 教科书的核心内容——微分、化简和力学建模。在这些领域，符号微分的重要性远超符号积分。因此，emmy 当前的状态可以看作是在开发优先级上做出的一个务实权衡。用户在选择 emmy 时应明确这一点。6.2. 物理单位与量纲分析在物理和工程计算中，对物理单位（如米、秒、千克）的跟踪和量纲分析至关重要。研究表明，emmy 核心库目前没有内置的物理单位系统 1。在 emmy 文档中搜索“unit”或“dimension”等关键词，其指向的是向量/矩阵的维度，而非物理量纲 13。这意味着 emmy 本身不会自动处理单位换算或检查方程的量纲一致性。需要此功能的用户，必须自行实现或依赖第三方库。例如，Clojure 社区中存在专门处理单位的库（如 g7s/unit）25，同时也有开发者在 Clerk 笔记本中展示了如何通过 deftype 和多重方法（multimethods）构建一个自定义的、带单位的数值类型 26。这为有此类需求的用户提供了可行的解决思路。6.3. 自定义简化规则尽管 emmy 的文档中提到了其内部拥有一个“规则引擎”（Rule Engine）作为简化过程的一部分 1，但并未提供任何公开的 API 允许用户定义自己的简化规则 23。simplify 函数对于最终用户而言，更像一个“黑箱”，它会应用一组内置的、规范的规则集来化简表达式。这一点与某些允许用户通过 defrule 之类的形式扩展简化器的系统不同。在需要特定领域或高度定制化的化简规则时，这可能成为一个限制。6.4. 代码生成能力除了生成可供阅读的 ->infix 和 ->TeX 字符串外，emmy 还拥有一个非常先进的函数编译引擎，位于 emmy.expression.compile 命名空间 15。这个引擎可以将一个用 emmy 符号表达式定义的函数，编译成高效的可执行代码。它支持多个编译目标 15：原生 Clojure 函数：通过 eval 动态生成高效的 JVM 字节码。JavaScript 源码：生成可直接在 JavaScript 环境中运行的代码字符串。SCI 解释执行：生成可在 Small Clojure Interpreter (SCI) 中运行的函数。Clojure/JavaScript 源码形式：返回代表函数逻辑的原始代码数据结构。这项功能对于性能敏感的应用场景（如求解常微分方程（ODE））极为强大。在这些场景中，一个符号定义的函数可能需要被数值化地调用数百万次，将其编译成原生代码可以带来巨大的性能提升。第 7 节：结论与未来展望7.1. 生态系统总结通过本次深度分析，可以得出结论：emmy 是一个功能强大、设计现代的 Clojure 计算机代数系统，是其前身 sicm-utils 的成功演进。它的核心优势在于其深厚的 Lisp 根基所带来的强大表达力、对符号操作和微分的精湛处理，以及其在经典力学和微分几何领域的深刻应用。emmy（负责计算）、Clerk（负责文学化编程）与 emmy-viewers（负责可视化）三者的结合，共同构成了一个功能完备、高度整合的科学探索环境。这个生态系统使得在 Clojure 中进行复杂的数学研究和创建交互式科学文档不仅成为可能，而且体验流畅、高效。7.2. 优势与局限优势：强大的表达能力：继承自 Lisp 的设计哲学，允许以极其贴近数学语言的方式构建抽象。无缝的生态集成：能够充分利用 Java 和 JavaScript 生态系统的庞大资源。顶级的交互式开发体验：与 Clerk 的结合，提供了现代化的、可复现的文学化编程工作流。深厚的物理学根基：在处理经典力学、微分几何等问题上，提供了高度特化的抽象和工具。劣势/局限：缺少符号积分：对于需要通用不定积分求解的场景，emmy 目前无法满足。缺少内置单位跟踪：物理和工程领域用户需要自行解决量纲分析的问题。简化的不透明性：用户无法自定义或扩展内置的简化规则集。7.3. 最终建议对于 emmy 的目标领域——符号数学探索、物理学教育、微分几何研究——它无疑是一个卓越的选择。它成功地将 Clojure 定位为一个能够与 Mathematica 等老牌工具相抗衡的平台，尤其是在创建“可塑造的”、“可探索的”交互式文档方面，展现出了独特的优势 9。对于潜在用户，建议是：充分利用其在微分、符号操作和与 Clerk 集成方面的强大能力。同时，也要清醒地认识到其在符号积分和物理单位方面的当前局限，并根据项目需求，考虑引入第三方库或自定义实现来弥补这些不足。总体而言，emmy 及其生态系统代表了 Clojure 在科学计算领域的一项重大成就，为 Lisp 爱好者和计算科学家们提供了一片充满可能性的新天地。
+#+end_src
+emmy 的作者 Sam Ritchie 在其演讲中反复提及" 可塑造的物理" (moldable physics)和" Lisp 式的微世界" (lispy microworlds)的概念. 这并不仅仅指静态的绘图.
+
+emmy-viewers 的真正威力在于其交互性. 通过 emmy.leva/controls 和 emmy.viewer/with-let 等工具, 可以直接在笔记本中创建 UI 控件(如滑块), 并将这些控件的值绑定到 Clojure 的 atom 上.
+
+绘图函数中使用的符号表达式可以响应这些 atom 值的变化, 并实时更新图形. 这种设计创造了一个紧密的反馈循环: 用户通过 UI 控件操纵参数, 并立即观察到这些变化对数学模型的视觉影响.
+
+这正是" 可塑造的微世界" 的精髓所在--一个自包含的, 可编程的, 交互式的模拟环境. 例如, 可以创建一个滑块来控制一个相位参数 phase, 并观察一个 3D 曲面 sin(x - phase) 如何随滑块的拖动而实时变化, 从而直观地理解相位参数的作用.
+
+** 第 6 节: 探讨高级主题与当前局限任何强大的工具都有其适用范围和局限性. 对 emmy 进行全面评估, 必须诚实地探讨其在某些高级功能上的现状.
+
+*** 6.1. 符号积分
+可能性与现实这是一个需要明确澄清的关键点. emmy 的核心功能列表包括数值积分(numerical integration)和数值优化(numerical optimization)6. 这意味着它可以计算定积分的数值近似值.
+
+emmy.expression.compile 命名空间也明确提到, 它可以编译用于 definite-integral 的函数, 这进一步证实了其在数值积分方面的能力.
+
+然而, 在所有已审查的文档和代码库中, 均未发现 emmy 提供了通用的符号积分(symbolic integration)功能, 即寻找一个函数的不定积分(antiderivative).
+
+符号积分功能的缺失并非疏忽, 而是其算法极端复杂性的体现. 正如在其他计算机代数系统社区的讨论中所揭示的, 实现一个鲁棒的符号积分器是一项巨大的工程, 通常需要融合多种算法, 例如基于规则的系统(如 RUBI)和更通用的算法(如 Risch 算法).
+
+emmy 项目源于 scmutils, 其发展重点一直围绕着 SICM 教科书的核心内容--微分, 化简和力学建模. 在这些领域, 符号微分的重要性远超符号积分. 因此, emmy 当前的状态可以看作是在开发优先级上做出的一个务实权衡. 用户在选择 emmy 时应明确这一点.
+
+***  6.2. 物理单位与量纲分析
+
+在物理和工程计算中, 对物理单位(如米, 秒, 千克)的跟踪和量纲分析至关重要. 研究表明, emmy 核心库目前没有内置的物理单位系统
+
+1. 在 emmy 文档中搜索"unit" 或" dimension" 等关键词, 其指向的是向量/矩阵的维度, 而非物理量纲. 这意味着 emmy 本身不会自动处理单位换算或检查方程的量纲一致性.
+
+需要此功能的用户, 必须自行实现或依赖第三方库. 例如, Clojure 社区中存在专门处理单位的库(如 g7s/unit), 同时也有开发者在 Clerk 笔记本中展示了如何通过 deftype 和多重方法(multimethods)构建一个自定义的, 带单位的数值类型.
+
+这为有此类需求的用户提供了可行的解决思路.
+
+*** 6.3. 自定义简化规
+
+则尽管 emmy 的文档中提到了其内部拥有一个" 规则引擎" (Rule Engine)作为简化过程的一部分, 但并未提供任何公开的 API 允许用户定义自己的简化规则.
+
+simplify 函数对于最终用户而言, 更像一个" 黑箱" , 它会应用一组内置的, 规范的规则集来化简表达式. 这一点与某些允许用户通过 defrule 之类的形式扩展简化器的系统不同. 在需要特定领域或高度定制化的化简规则时, 这可能成为一个限制.
+
+*** 6.4. 代码生成能力
+
+除了生成可供阅读的 ->infix 和 ->TeX 字符串外, emmy 还拥有一个非常先进的函数编译引擎, 位于 emmy.expression.compile 命名空间. 这个引擎可以将一个用 emmy 符号表达式定义的函数, 编译成高效的可执行代码.
+
+它支持多个编译目标: 原生 Clojure 函数: 通过 eval 动态生成高效的 JVM 字节码. JavaScript 源码: 生成可直接在 JavaScript 环境中运行的代码字符串. SCI 解释执行: 生成可在 Small Clojure Interpreter (SCI) 中运行的函数.
+
+Clojure/JavaScript 源码形式: 返回代表函数逻辑的原始代码数据结构. 这项功能对于性能敏感的应用场景(如求解常微分方程(ODE))极为强大. 在这些场景中, 一个符号定义的函数可能需要被数值化地调用数百万次, 将其编译成原生代码可以带来巨大的性能提升.
+
+** 第 7 节: 结论与未来展望
+
+*** 7.1. 生态系统总结
+
+通过本次深度分析, 可以得出结论: emmy 是一个功能强大, 设计现代的 Clojure 计算机代数系统, 是其前身 sicm-utils 的成功演进. 它的核心优势在于其深厚的 Lisp 根基所带来的强大表达力, 对符号操作和微分的精湛处理, 以及其在经典力学和微分几何领域的深刻应用.
+
+emmy(负责计算), Clerk(负责文学化编程)与 emmy-viewers(负责可视化)三者的结合, 共同构成了一个功能完备, 高度整合的科学探索环境. 这个生态系统使得在 Clojure 中进行复杂的数学研究和创建交互式科学文档不仅成为可能, 而且体验流畅, 高效.
+
+*** 7.2. 优势与局限优势
+
+强大的表达能力: 继承自 Lisp 的设计哲学, 允许以极其贴近数学语言的方式构建抽象. 无缝的生态集成: 能够充分利用 Java 和 JavaScript 生态系统的庞大资源. 顶级的交互式开发体验: 与 Clerk 的结合, 提供了现代化的, 可复现的文学化编程工作流.
+
+深厚的物理学根基: 在处理经典力学, 微分几何等问题上, 提供了高度特化的抽象和工具. 劣势/局限: 缺少符号积分: 对于需要通用不定积分求解的场景, emmy 目前无法满足. 缺少内置单位跟踪: 物理和工程领域用户需要自行解决量纲分析的问题.
+
+简化的不透明性: 用户无法自定义或扩展内置的简化规则集.
+
+***  7.3. 最终建议
+
+对于 emmy 的目标领域--符号数学探索, 物理学教育, 微分几何研究--它无疑是一个卓越的选择. 它成功地将 Clojure 定位为一个能够与 Mathematica 等老牌工具相抗衡的平台, 尤其是在创建" 可塑造的" , " 可探索的" 交互式文档方面, 展现出了独特的优势.
+
+对于潜在用户, 建议是: 充分利用其在微分, 符号操作和与 Clerk 集成方面的强大能力. 同时, 也要清醒地认识到其在符号积分和物理单位方面的当前局限, 并根据项目需求, 考虑引入第三方库或自定义实现来弥补这些不足.
+
+总体而言, emmy 及其生态系统代表了 Clojure 在科学计算领域的一项重大成就, 为 Lisp 爱好者和计算科学家们提供了一片充满可能性的新天地.
